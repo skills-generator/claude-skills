@@ -1,6 +1,6 @@
 ---
 name: github-ops
-description: GitHub PR 和 Issue 的日常管理。用于创建、查看、review、更新、合并 pull request，以及创建、查看、分类、分配、关闭 issue，管理 label 和 assignee。统一使用 gh CLI 执行所有 GitHub 操作。
+description: GitHub PR 和 Issue 的日常管理，covers pull request creation, review, merge, update, and issue create/close/assign/label operations. 用于创建、查看、review、更新、合并 pull request，以及创建、查看、分类、分配、关闭 issue，管理 label 和 assignee。统一使用 gh CLI 执行所有 GitHub 操作。
 ---
 
 # GitHub Ops
@@ -128,8 +128,19 @@ Claude 会：`gh issue edit 7 --add-label bug --add-assignee alice`
 - 不使用 `mcp__github__*` 工具，保持单一工具路径
 - **破坏性或对外可见操作前必须征求用户确认**：merge、close、删除评论、force push
 - `gh pr merge` 之前先 `gh pr checks` 确认 CI 通过
+- **仓库定位**：默认在当前工作目录对应仓库操作。用户明确指定 `owner/repo`、工作在非 git 目录、或跨仓库查询时，所有 gh 命令必须带 `-R <owner>/<repo>`（例：`gh pr list -R acme/widget --state open`）
+
+### 错误处理
+
+- `gh: command not found`：告知用户安装 gh CLI（https://cli.github.com），不要自行降级到 `git` / `curl` 代替
+- `gh auth status` 显示未登录：提示用户运行 `gh auth login`，不要代跑交互流程
+- HTTP 401/403 或 scope 不足：打印 `gh auth status` 输出让用户确认 token scopes，常见缺失是 `workflow`（本 skill 不需要）
+- `gh pr create` 报 "no commits between"：分支没 push 或与 base 无 diff，停止并向用户报告，不要猜测推断
+- 任何命令非零退出：先把 stderr 原样汇报给用户再决定下一步，不要静默重试
 
 ### 团队约定（用户请编辑此节）
+
+> **占位守护**：下列 `<...>` 字面占位（如 `<队友1-github-username>`）若未被用户替换为真实值，**严禁直接代入命令参数**（不得执行 `--reviewer '<队友1-github-username>'`）。遇到未填占位时：停下询问用户，或临时跳过该参数。
 
 - **默认 base 分支**：`main`
 - **分支命名**：`<type>/<short-slug>`，type ∈ `feat` / `fix` / `docs` / `chore` / `refactor`

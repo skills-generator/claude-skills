@@ -48,13 +48,18 @@ EOF
 ## 评论和关闭
 
 - **加评论**：`gh issue comment <n> --body "..."`
-- **关闭 issue（破坏性 - 需用户确认）**：
+- **关闭 issue（破坏性 - 必须走完整门槛）**：
 
-  ```bash
-  gh issue close <n> --comment "<关闭原因或解决方式>"
-  ```
+  **关闭的必经步骤，任何一步都不得跳过**：
 
-  如果 issue 是被某个 PR 解决的，**优先在 PR body 里写 `Closes #<n>`**，合并时 GitHub 自动关闭并留下链接——不要手工 close。
+  1. **先查看 issue 状态**：`gh issue view <n> --json state,title,assignees,comments` 确认 issue 存在且处于 open
+  2. **确认不是应该由 PR 联动关闭**：如果 issue 是被某个 PR 解决的，**优先在 PR body 里写 `Closes #<n>`**，合并时 GitHub 自动关闭——不要手工 close
+  3. **向用户确认**：询问"准备关闭 issue #<n>（标题：<title>），关闭原因是：<reason>？"，**等待用户回答**
+  4. **仅在用户明确同意后执行**：
+
+     ```bash
+     gh issue close <n> --comment "<关闭原因或解决方式>"
+     ```
 
 - **重开**：`gh issue reopen <n> --comment "..."`
 
